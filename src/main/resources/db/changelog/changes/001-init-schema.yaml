@@ -1,0 +1,278 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users
+      author: techexchange
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_users
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_users_email
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  defaultValue: USER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: 002-create-devices
+      author: techexchange
+      changes:
+        - createTable:
+            tableName: devices
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_devices
+                    nullable: false
+              - column:
+                  name: owner_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(180)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: device_condition
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  defaultValue: AVAILABLE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: brand
+                  type: VARCHAR(120)
+              - column:
+                  name: model
+                  type: VARCHAR(120)
+              - column:
+                  name: city
+                  type: VARCHAR(120)
+              - column:
+                  name: desired_exchange
+                  type: VARCHAR(280)
+              - column:
+                  name: description
+                  type: VARCHAR(1400)
+              - column:
+                  name: image_url
+                  type: VARCHAR(700)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+        - addForeignKeyConstraint:
+            baseTableName: devices
+            baseColumnNames: owner_id
+            constraintName: fk_devices_owner
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: devices
+            indexName: idx_devices_owner_updated
+            columns:
+              - column:
+                  name: owner_id
+              - column:
+                  name: updated_at
+        - createIndex:
+            tableName: devices
+            indexName: idx_devices_category_status
+            columns:
+              - column:
+                  name: category
+              - column:
+                  name: status
+
+  - changeSet:
+      id: 003-create-exchange-requests
+      author: techexchange
+      changes:
+        - createTable:
+            tableName: exchange_requests
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_exchange_requests
+                    nullable: false
+              - column:
+                  name: target_device_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: offered_device_id
+                  type: BIGINT
+              - column:
+                  name: requester_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message
+                  type: VARCHAR(1200)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+        - addForeignKeyConstraint:
+            baseTableName: exchange_requests
+            baseColumnNames: target_device_id
+            constraintName: fk_exchange_requests_target_device
+            referencedTableName: devices
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: exchange_requests
+            baseColumnNames: offered_device_id
+            constraintName: fk_exchange_requests_offered_device
+            referencedTableName: devices
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - addForeignKeyConstraint:
+            baseTableName: exchange_requests
+            baseColumnNames: requester_id
+            constraintName: fk_exchange_requests_requester
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: exchange_requests
+            baseColumnNames: owner_id
+            constraintName: fk_exchange_requests_owner
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: exchange_requests
+            indexName: idx_exchange_requests_participants
+            columns:
+              - column:
+                  name: requester_id
+              - column:
+                  name: owner_id
+              - column:
+                  name: updated_at
+
+  - changeSet:
+      id: 004-create-messages
+      author: techexchange
+      changes:
+        - createTable:
+            tableName: messages
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_messages
+                    nullable: false
+              - column:
+                  name: exchange_request_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sender_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text
+                  type: VARCHAR(1200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+        - addForeignKeyConstraint:
+            baseTableName: messages
+            baseColumnNames: exchange_request_id
+            constraintName: fk_messages_exchange_request
+            referencedTableName: exchange_requests
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: messages
+            baseColumnNames: sender_id
+            constraintName: fk_messages_sender
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: messages
+            indexName: idx_messages_request_created
+            columns:
+              - column:
+                  name: exchange_request_id
+              - column:
+                  name: created_at

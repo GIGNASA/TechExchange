@@ -1,0 +1,43 @@
+name: techexchange
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: techexchange-postgres
+    environment:
+      POSTGRES_DB: techexchange
+      POSTGRES_USER: techexchange
+      POSTGRES_PASSWORD: techexchange
+      TZ: Europe/Kyiv
+      PGTZ: Europe/Kyiv
+    ports:
+      - "5433:5432"
+    volumes:
+      - techexchange_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U techexchange"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: techexchange-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: techexchange-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/techexchange
+      SPRING_DATASOURCE_USERNAME: techexchange
+      SPRING_DATASOURCE_PASSWORD: techexchange
+      SERVER_PORT: 8080
+      TZ: Europe/Kyiv
+      JAVA_TOOL_OPTIONS: -Duser.timezone=Europe/Kyiv
+    ports:
+      - "8080:8080"
+
+volumes:
+  techexchange_postgres_data:
